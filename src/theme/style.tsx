@@ -43,10 +43,28 @@ export const style = StyleSheet.create({
         borderRadius: 12, 
         elevation: 3, 
     },
-    HeaderHome: {
+    Header: {
         flexDirection: "row",
         gap: 12, 
         alignItems: "center",
         paddingVertical: 10, 
+    },
+    icon:{
+        alignItems: 'flex-end',
+        flex: 1
+    },
+    modalProfile:{
+        padding: 20,
+        marginHorizontal: 20,
+        backgroundColor:'#fff',   
+        borderRadius:10,
+        gap:10
+    },
+    rootListProduct:{
+        marginTop:10,
+        flexDirection:'row',
+        padding:10,
+        alignItems:"center",
+        gap:20
     }
 });
