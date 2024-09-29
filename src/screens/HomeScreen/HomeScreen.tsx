@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { FlatList, View } from "react-native";
-import { Avatar, Button, IconButton, Modal, Portal, Text, TextInput } from "react-native-paper";
+import { Avatar, Button, FAB, Icon, IconButton, Modal, Portal, Text, TextInput } from "react-native-paper";
 import { style } from "../../theme/style";
 import { auth } from "../../firebaseConfig";
 import firebase from '@firebase/auth'
 import { updateProfile } from "firebase/auth";
 import { ProductCardComponent } from "./Components/ProductCardComponent";
-import ModalProfileComponent from "./Components/ModalComponent";
+import { NewPorductComponent } from "./Components/NewProductComponent";
+
 
 //Interfaz: Informacion del usuario  FormUser
 interface FormUser {
     name: string;
+    phoneNumber?: string;
 }
 //interface para los productos 
 interface Product {
@@ -25,7 +27,8 @@ interface Product {
 export const HomeScreen = () => {
     //Crear un hook- UseState: Cambiar el estado del formulario
     const [FormUser, setFormUser] = useState<FormUser>({
-        name: ""
+        name: "",
+        phoneNumber: ""
     });
 
     //Hook: capturar y modificar la data del usuario
@@ -51,13 +54,19 @@ export const HomeScreen = () => {
 
 
     //hook useState: permitir que el modal se visualize o no 
-    const [showModal, setShowModal] = useState<Boolean>(false)
+    const [showModalProfile, setShowModalProfile] = useState<Boolean>(false)
+
+    //hook useState para ver y ocultar el modal de agregar
+    const [showModalProduct, setShowModalProduct] = useState<Boolean>(false)
+
     //Funcion para actualizar la informacion del usuario autenticado
     const handleUpdateUser = async () => {
         try {
-            await updateProfile(userData!, { displayName: FormUser.name })
+            await updateProfile(userData!, { displayName: FormUser.name, })
             //ocultar modal
-            setShowModal(false);
+            setShowModalProfile(false);
+            console.log(userData);
+
         } catch (e) {
             console.log(e);
 
@@ -79,17 +88,17 @@ export const HomeScreen = () => {
         <>
             <View style={style.rootHome}>
                 <View style={style.Header}>
-                    <Avatar.Text size={50} label="PN" />
+                    <Icon size={50} source= "ice-cream"/>
                     <View>
                         <Text variant="bodySmall">Bienvenido</Text>
                         <Text variant="labelLarge">{userData?.displayName}</Text>
                     </View>
                     <View style={style.icon}>
                         <IconButton
-                            icon="account-edit"
+                            icon="ice-pop"
                             size={30}
                             mode="contained"
-                            onPress={() => setShowModal(true)}
+                            onPress={() => setShowModalProfile(true)}
                         />
                     </View>
                 </View>
@@ -101,14 +110,39 @@ export const HomeScreen = () => {
                     />
                 </View>
             </View>
-            <ModalProfileComponent
-                visible={showModal}
-                onClose={() => setShowModal(false)}
-                onUpdateUser={handleUpdateUser}
-                formUser={FormUser}
-                userData={userData}
-                handleSetValues={handleSetValues}
+                <Portal>
+                    <Modal visible={showModalProfile} contentContainerStyle={style.modal}>
+                        <View style={style.Header}>
+                            <Text variant="headlineSmall">Editar perfil</Text>
+                            <View style={style.icon}>
+                                <IconButton
+                                    icon="close-outline"
+                                    size={20}
+                                    onPress={() => setShowModalProfile(false)}
+                                />
+                            </View>
+                        </View>
+                        <TextInput
+                            mode='outlined'
+                            label='Nombre'
+                            value={FormUser.name}
+                            onChangeText={(value) => handleSetValues('name', value)}
+                        />
+                        <TextInput
+                            mode='outlined'
+                            label='Correo'
+                            disabled
+                            value={userData?.email!}
+                        />
+                        <Button mode='outlined' onPress={handleUpdateUser}>Actualizar</Button>
+                    </Modal>
+                </Portal>
+            <FAB
+                icon="keyboard-variant"
+                style={style.fab}
+                onPress={() => setShowModalProduct(true)}
             />
+            <NewPorductComponent showModalProduct={showModalProduct} setShowModalProduct={setShowModalProduct} />
         </>
     )
 }
