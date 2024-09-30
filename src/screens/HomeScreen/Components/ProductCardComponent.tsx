@@ -20,7 +20,7 @@ export const ProductCardComponent = ({product}:Props) => {
             </View>
             <View style={style.icon}>
                 <IconButton
-                    icon="album"
+                    icon="google-circles-group"
                     size={20}
                     mode="outlined"
                     onPress={()=> navigation.dispatch(CommonActions.navigate({name:'Detail', params:{product}}))}

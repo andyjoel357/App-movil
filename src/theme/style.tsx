@@ -89,5 +89,11 @@ export const style = StyleSheet.create({
     textDetail:{
         fontWeight:"bold",
         fontSize:16
+    },
+    fab2: {
+        position: 'absolute',
+        bottom: 20,
+        left: 20,
+
     }
 });
