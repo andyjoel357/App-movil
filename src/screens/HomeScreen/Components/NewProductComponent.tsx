@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Button, Divider, IconButton, Modal, Portal, Snackbar, Text, TextInput } from 'react-native-paper'
 import { style } from '../../../theme/style'
 import { View } from 'react-native'
-import { database } from '../../../firebaseConfig'
+import { auth, database } from '../../../firebaseConfig'
 import { push, ref, set } from 'firebase/database'
 // Intreface - Proops (Propiedades de un componente padre a un hijo)
 interface Props {
@@ -54,7 +54,7 @@ export const NewPorductComponent = ({ showModalProduct, setShowModalProduct }: P
         }
         //console.log(formProduct);
         // 1 crear la referencia aa la bdd
-        const dbRef = ref(database, 'products')
+        const dbRef = ref(database, 'products/' + auth.currentUser?.uid   )
         //2 crear una coleccion que agrege los datos en dbref
         const saveProduct = push(dbRef)
         //3. Almacenar los datos

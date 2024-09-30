@@ -51,9 +51,11 @@ export const LoginScreen = () => {
         try {
             const response = await signInWithEmailAndPassword(
                 auth,
+                //@ts-ignore
                 FormLogin.email,
                 FormLogin.password
             );
+            navigation.dispatch(CommonActions.navigate({name:'Home'}))
         } catch (e) {
             console.log(e);
             setShowMessage({
@@ -77,6 +79,7 @@ export const LoginScreen = () => {
                 label="Password"
                 mode="outlined"
                 placeholder="Ecribe tu contraseña"
+                //@ts-ignore
                 secureTextEntry={hiddenPassword}
                 onChangeText={(value) => handleSetValues('password', value)}
                 right={<TextInput.Icon icon="eye" onPress={() => setHiddenPassword(!hiddenPassword)} />}

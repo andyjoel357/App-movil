@@ -54,7 +54,7 @@ export const style = StyleSheet.create({
     icon: {
         alignItems: 'flex-end',
         flex: 1,
-        gap:30
+        gap: 30
     },
     modal: {
         padding: 20,
@@ -78,6 +78,16 @@ export const style = StyleSheet.create({
     },
     rootInputsProducts: {
         flexDirection: 'row',
-        gap: 35
+        gap:5
+    },
+    rootDetail: {
+        flex: 1,
+        padding: 20,
+        gap:20,
+        backgroundColor:'#ffffc9'
+    },
+    textDetail:{
+        fontWeight:"bold",
+        fontSize:16
     }
 });

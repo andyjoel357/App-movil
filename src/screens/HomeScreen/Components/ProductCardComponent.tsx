@@ -2,13 +2,20 @@ import React from "react";
 import { View } from "react-native";
 import { IconButton, Text } from "react-native-paper";
 import { style } from "../../../theme/style";
+import { Product } from "../HomeScreen";
+import { CommonActions, useNavigation } from "@react-navigation/native";
 
-export const ProductCardComponent = () => {
+interface Props{
+    product: Product;
+}
+export const ProductCardComponent = ({product}:Props) => {
+    //hook de navegacion
+    const navigation =useNavigation();
     return (
         <View style={style.rootListProduct}>
             <View>
-                <Text variant="labelLarge">Nombre:</Text>
-                <Text variant="bodyMedium">Precio:</Text>
+                <Text variant="labelLarge">Nombre:{product.nameProduct}</Text>
+                <Text variant="bodyMedium">Precio:${product.price}</Text>
 
             </View>
             <View style={style.icon}>
@@ -16,7 +23,7 @@ export const ProductCardComponent = () => {
                     icon="album"
                     size={20}
                     mode="outlined"
-                    onPress={() => console.log("Press")}
+                    onPress={()=> navigation.dispatch(CommonActions.navigate({name:'Detail', params:{product}}))}
                 />
             </View>
         </View>

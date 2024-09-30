@@ -2,20 +2,21 @@ import React, { useEffect, useState } from "react";
 import { FlatList, View } from "react-native";
 import { Avatar, Button, FAB, Icon, IconButton, Modal, Portal, Text, TextInput } from "react-native-paper";
 import { style } from "../../theme/style";
-import { auth } from "../../firebaseConfig";
+import { auth, database } from "../../firebaseConfig";
 import firebase from '@firebase/auth'
-import { updateProfile } from "firebase/auth";
+import { updateProfile,signOut } from "firebase/auth";
 import { ProductCardComponent } from "./Components/ProductCardComponent";
 import { NewPorductComponent } from "./Components/NewProductComponent";
+import { onValue, ref } from "firebase/database";
+import { CommonActions, useNavigation } from "@react-navigation/native";
 
 
 //Interfaz: Informacion del usuario  FormUser
 interface FormUser {
     name: string;
-    phoneNumber?: string;
 }
 //interface para los productos 
-interface Product {
+export interface Product {
     id: string,
     code: string,
     nameProduct: string,
@@ -25,32 +26,19 @@ interface Product {
 }
 
 export const HomeScreen = () => {
+
+    const navigation = useNavigation()
+
     //Crear un hook- UseState: Cambiar el estado del formulario
     const [FormUser, setFormUser] = useState<FormUser>({
         name: "",
-        phoneNumber: ""
     });
 
     //Hook: capturar y modificar la data del usuario
     const [userData, setUserData] = useState<firebase.User | null>(null)
 
     //hook useState: gestionar la lista de productos a mostrar
-    const [products, setproducts] = useState<Product[]>([
-        {
-            id: '01',
-            code: '483453945',
-            nameProduct: 'Teclado',
-            price: 35, stock: 10,
-            description: 'Teclado mecanico rgb'
-        },
-        {
-            id: '02',
-            code: '4378578345',
-            nameProduct: 'Mouse',
-            price: 30, stock: 15,
-            description: 'Mouse 3434 rgb gaming'
-        }
-    ])
+    const [products, setProducts] = useState<Product[]>([])
 
 
     //hook useState: permitir que el modal se visualize o no 
@@ -63,15 +51,36 @@ export const HomeScreen = () => {
     const handleUpdateUser = async () => {
         try {
             await updateProfile(userData!, { displayName: FormUser.name, })
-            //ocultar modal
-            setShowModalProfile(false);
-            console.log(userData);
-
         } catch (e) {
             console.log(e);
-
         }
+        //ocultar modal
+        setShowModalProfile(false);
     }
+    //funcion para obtener productos y listarlos
+    const getAllProducts = () => {
+        //1 direccionar a la db
+        const dbRef = ref(database, 'products')
+        //2 acceder a la data
+        onValue(dbRef, (snapshot) => {
+            // capturar la data
+            const data = snapshot.val(); //obtener la data en un formato esperado
+            //VERIFICAR QUE EXISTE DATOS
+            if (!data) return;
+            //4. obtener las keys de cada valor
+            const getKeys = Object.keys(data)
+            // 5. crear un arreglo para almacenar los productos obtenidos
+            const listProducts: Product[] = [];
+            //6 recorrer las kwys para acceder a los productos
+            getKeys.forEach((key) => {
+                const value = { ...data[key], id:key}
+                listProducts.push(value);
+            })
+            //7 actualizar la data obtenida en el arreglo en el hook useState
+            setProducts(listProducts);
+        })
+    }
+
     //Funcion para actualizar el estado del formulario
     const handleSetValues = (key: string, value: string) => {
         setFormUser({ ...FormUser, [key]: value })
@@ -81,14 +90,26 @@ export const HomeScreen = () => {
     useEffect(() => {
         setUserData(auth.currentUser); //Obtener el usuario Logeado
         setFormUser({ name: auth.currentUser?.displayName ?? '' })
-
+        //llamar a la funcion para ver la lista de productos
+        getAllProducts()
     }, [])
-
+        //Funcion para cerrar sesion
+        const hanldeSingOut= async()=>{
+            try {
+                await signOut(auth)
+                //resetear oas rutas
+               navigation.dispatch(CommonActions.reset({index:0,routes:[{name:'Login'}]}))
+            } catch (error) {
+                console.log(error);
+                
+            }
+        }
+    
     return (
         <>
             <View style={style.rootHome}>
                 <View style={style.Header}>
-                    <Icon size={50} source= "ice-cream"/>
+                    <Icon size={50} source="ice-cream" />
                     <View>
                         <Text variant="bodySmall">Bienvenido</Text>
                         <Text variant="labelLarge">{userData?.displayName}</Text>
@@ -105,42 +126,47 @@ export const HomeScreen = () => {
                 <View>
                     <FlatList
                         data={products}
-                        renderItem={({ item }) => <ProductCardComponent />}
+                        renderItem={({ item }) => <ProductCardComponent product={item}/>}
                         keyExtractor={item => item.id}
                     />
                 </View>
             </View>
-                <Portal>
-                    <Modal visible={showModalProfile} contentContainerStyle={style.modal}>
-                        <View style={style.Header}>
-                            <Text variant="headlineSmall">Editar perfil</Text>
-                            <View style={style.icon}>
-                                <IconButton
-                                    icon="close-outline"
-                                    size={20}
-                                    onPress={() => setShowModalProfile(false)}
-                                />
-                            </View>
+            <Portal>
+                <Modal visible={showModalProfile} contentContainerStyle={style.modal}>
+                    <View style={style.Header}>
+                        <Text variant="headlineSmall">Editar perfil</Text>
+                        <View style={style.icon}>
+                            <IconButton
+                                icon="close-outline"
+                                size={20}
+                                onPress={() => setShowModalProfile(false)}
+                            />
                         </View>
-                        <TextInput
-                            mode='outlined'
-                            label='Nombre'
-                            value={FormUser.name}
-                            onChangeText={(value) => handleSetValues('name', value)}
-                        />
-                        <TextInput
-                            mode='outlined'
-                            label='Correo'
-                            disabled
-                            value={userData?.email!}
-                        />
-                        <Button mode='outlined' onPress={handleUpdateUser}>Actualizar</Button>
-                    </Modal>
-                </Portal>
+                    </View>
+                    <TextInput
+                        mode='outlined'
+                        label='Nombre'
+                        value={FormUser.name}
+                        onChangeText={(value) => handleSetValues('name', value)}
+                    />
+                    <TextInput
+                        mode='outlined'
+                        label='Correo'
+                        disabled
+                        value={userData?.email!}
+                    />
+                    <Button mode='outlined' onPress={handleUpdateUser}>Actualizar</Button>
+                </Modal>
+            </Portal>
             <FAB
                 icon="keyboard-variant"
                 style={style.fab}
                 onPress={() => setShowModalProduct(true)}
+            />
+            <FAB
+                icon="keyboard-variant"
+                style={style.fab}
+                onPress={hanldeSingOut}
             />
             <NewPorductComponent showModalProduct={showModalProduct} setShowModalProduct={setShowModalProduct} />
         </>
